@@ -1,4 +1,10 @@
 pipeline {
+   environment {
+     dockerRegistry = "isatoltar45/node-dockerized"
+     dockerRegistryCredential = 'docker-hub'
+     dockerImage = ''
+   }
+
   agent any
   tools {nodejs "node"}
 
@@ -20,5 +26,29 @@ pipeline {
         sh 'npm test'
       }
     }
+
+    stage("Building image") {
+      steps {
+        script {
+          dockerImage = docker.build dockerRegistry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+
+    stage("Uploading image") {
+      steps {
+        script {
+           docker.withRegistry( '', dockerRegistryCredential ) {
+             dockerImage.push()
+           }
+        }
+      }
+    }
+
+    stage('Remove Unused docker image') {
+       steps{
+         sh "docker rmi $dockerRegistry:$BUILD_NUMBER"
+       }
+     }
   }
 }
