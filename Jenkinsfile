@@ -39,7 +39,7 @@ pipeline {
       steps {
         script {
            docker.withRegistry( '', dockerRegistryCredential ) {
-             dockerImage.push()
+             dockerImage.push(":$BUILD_NUMBER")
            }
         }
       }
